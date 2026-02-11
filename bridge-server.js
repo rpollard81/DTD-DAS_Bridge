@@ -5,11 +5,13 @@ Const BRIDGE_LISTEN_PORT = 8787;
 const DAS_HOST = "127.0.0.1";
 const DAS_CMD_API_PORT = 5566;
 
-// CHANGE THESE
+// Change this if you used a different name for your DAS montage window
+const MONTAGE_WINDOW_NAME = "DasMontage";
+
+// Future use
 const TRADER = "YOUR_TRADER";
 const PASSWORD = "YOUR_PASSWORD";
 const ACCOUNT = "YOUR_ACCOUNT";
-const MONTAGE_WINDOW_NAME = "DasMontage";
 
 let socket;
 let loggedIn = false;

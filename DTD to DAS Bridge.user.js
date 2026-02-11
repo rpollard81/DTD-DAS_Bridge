@@ -11,8 +11,8 @@ console.log('DTD to DAS Bridge');
 (() => {
   "use strict";
 
-  // IP address should be 127.0.0.1 if DAS runs on the same machine as the broswer that DTD runs in
-  const DAS_HOST_IP_ADDRESS = "10.211.55.3";
+  // IP address should be 127.0.0.1 if DAS runs on the same machine as the browser that DTD runs in
+  const DAS_HOST_IP_ADDRESS = "127.0.0.1";
   const DAS_HOST_PORT = "8787";
   const RECEIVER_URL = "http://" + DAS_HOST_IP_ADDRESS + ":" + DAS_HOST_PORT + "/symbol";
   const SYMBOL_RE = /^[A-Z0-9][A-Z0-9._-]{0,15}$/;
