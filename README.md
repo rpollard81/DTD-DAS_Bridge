@@ -1,6 +1,62 @@
 # DTD-DAS_Bridge
 Populates DAS Trader montage window when a symbol is selected in Day Trade Dash
 
+# End-to-End Data Flow
+This integration connects Day Trade Dash (DTD) running in a Chrome browser on macOS to DAS Trader Pro running inside a Windows VM (Parallels), enabling one-click symbol synchronization.
+
+## 1. Symbol Selection in DTD
+When a user selects a ticker in DTD, the Stock Quote widget updates.
+The displayed ticker symbol (e.g., SMX) is rendered inside a predictable anchor element:
+```html
+<a href="https://www.warriortrading.com/quote/SMX">SMX</a>
+```
+
+## 2. Userscript Symbol Detection
+A Tampermonkey userscript runs on the DTD dashboard page and:
+  - Monitors the DOM using a MutationObserver
+  - Detects changes to the Stock Quote widget
+  - Extracts the ticker symbol from the anchor text or URL
+  - Debounces rapid updates
+  - De-duplicates consecutive identical symbols
+
+This avoids intercepting network traffic and introduces effectively zero measurable latency beyond UI rendering
+
+## 3. Browser → Local Bridge
+When a new symbol is detected, the userscript sends a lightweight POST request containing:
+```json
+{ "symbol": "SMX" }
+```
+to a locally running receiver (either directly to the DAS API port or to a small helper service)
+
+## 4. Bridge → DAS Trader Pro
+The Windows-side receiver (or direct DAS API connection):
+  - Receives the symbol
+  - Injects it into DAS using the configured API/command port
+or
+  - Executes a DAS script that sets the Montage window’s SYMBOL property
+  - The target Montage window is pre-named so it can be reliably updated.
+
+## 5. Montage Update
+DAS updates the Montage window to the new ticker symbol, making it immediately tradable
+
+Result
+
+Clicking a symbol in DTD results in:
+```text
+DTD selection
+  → Userscript detects symbol
+    → Local bridge receives symbol
+      → DAS API/script updates Montage
+        → Montage displays new ticker
+```
+
+The entire process occurs locally with minimal overhead and no external dependencies beyond the browser and DAS
+
+# Setup Instructions
+
+> [!NOTE]
+> These instruction are technically for a system where DAS Trader is running in a VM on a Mac comouter, but they are valid for a full Windows system as well. I note where the instruction deviate for that case
+
 ## On computer the runs the browser for Day Trade Dash
   - Install and setup the TamperMonkey extension for the browser that runs DTD
 	  - Instructions for Chrome:
@@ -26,20 +82,26 @@ Populates DAS Trader montage window when a symbol is selected in Day Trade Dash
 		  - At this point, everything should be setup on the web browser side. You can verify that it is working by opening Chrome Developer Tools, then selecting the Console tab. If you click on a ticker symbol in Day Trade Dash, you should see it printed in the Console window. If so, you can close Developer Tools
 
 ## On the computer that runs DAS Trader
+
 ### In DAS Trader
   - In Setup -> Other Configuration:
 	  - Set the CMD API Port to 5566
 	  - Click the checkbox for Disable Logon Check (Login is only required for trades, but we just want to populate the montage window with our ticker symbol)
 	  - Save and exit configuration
-  - Right click on the title bar of the montage window, and in the configuration popup, give it a name. I used "DasMontage"
+  - Right click on the title bar of the montage window, and in the configuration popup, give it a name. I used "DasMontage", but it can be anything you like
   - Restart DAS Trader
   - You should get a Windows firewall warning, asking if you want to allow incoming connections to DAS. Approve this or nothing will work
 
-*The script that bridges the browser script to the DAS Trader API runs in NodeJS. Here's the easiest way to set it up:
+> [!NOTE]
+> The script that bridges the browser script to the DAS Trader API runs in NodeJS. Here's the easiest way to set it up:
+
 ### Copy script file to a location on your computer
   - Create a folder called "dtd-bridge" in C:/
   - Copy the bridge-server.js to the folder
-  - If you chose a different name than I did for your DAS montage window, edit the MONTAGE_WINDOW_NAME constant in the script and save it
+
+> [!NOTE]
+> If you chose a different name than I did for your DAS montage window, edit the MONTAGE_WINDOW_NAME constant in the script and save it
+
 ### Install nvm-windows
   - Get nvm-windows from here and install it: https://github.com/coreybutler/nvm-windows
 ### Install node.js
