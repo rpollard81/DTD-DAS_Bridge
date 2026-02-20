@@ -3,6 +3,7 @@
 // @match        https://chatroom.warriortrading.com/*
 // @run-at       document-start
 // @grant        GM_xmlhttpRequest
+// @connect 127.0.0.1
 // ==/UserScript==
 
 alert('DTD to DAS Bridge');
